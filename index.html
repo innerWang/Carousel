@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>无限轮播</title>
+	<link rel="stylesheet" href="//at.alicdn.com/t/font_1008864_io4rl3oczc.css">
+	<script src="//cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+
+		ul li {
+			list-style: none;
+		}
+
+		a {
+			text-decoration: none;
+		}
+
+		.clearfix::after{
+			content: '';
+			display: block;
+			clear: both;
+		}
+
+		.carousel {
+			position: relative;
+			width: 320px;
+			height: 180px;
+			margin: 50px auto;
+			overflow: hidden;
+		}
+
+		.carousel .img-ct {
+			position: absolute;
+			/*写此句是为了使父元素成为BFC 可以包裹住浮动的子元素*/
+			/*overflow: hidden;*/
+		}
+
+		.carousel .img-ct li {
+			float: left;
+		}
+
+		.carousel .img-ct img {
+			width: 320px;
+			height: 180px;
+		}
+
+		.carousel .arrow {
+			position: absolute;
+			top: 50%;
+			/*为了设置宽高，a标签为inline元素，无法设置宽高*/
+			display: inline-block;
+			font-size: 20px;
+			height: 30px;
+			width: 30px;
+			margin-top: -15px;
+			border: 1px solid #fff;
+			border-radius: 50%;
+			line-height: 30px;
+			text-align: center;
+			color: #fff;
+		}
+
+		.carousel .arrow:hover {
+			opacity: 0.8;
+		}
+		
+		.carousel .arrow.icon-left {
+			left: 10px;
+		}
+
+		.carousel .arrow.icon-right {
+			right: 10px;
+		}
+
+		.carousel .bullet {
+			position: absolute;
+			bottom: 10px;
+			width: 100%;
+			font-size: 0;
+			z-index: 1;
+			text-align: center;
+		}
+
+		.carousel .bullet >li {
+			display: inline-block;
+			width: 30px;
+			height: 5px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			margin: 0 3px;
+			cursor: pointer;
+		}
+
+		.carousel .bullet >li.active {
+			background: #ccc;
+		}
+
+	</style>
+</head>
+<body>
+	<div class="carousel">
+		<ul class="img-ct clearfix">
+			<li><a href="#"><img src="https://desk-fd.zol-img.com.cn/t_s960x600c5/g5/M00/08/00/ChMkJ1exsLCIULDFAAedtOIaCSsAAUdOAE_UEYAB53M287.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://bpic.wotucdn.com/16/59/94/16599493-88af06afa739cb9e06d3204d4b336f66.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://pic9.photophoto.cn/20081224/0034034894481234_b.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://www.bbra.cn/Uploadfiles/imgs/2014/03/26/feng2/Xbzs_011.jpg" alt=""></a></li>
+		</ul>
+		<a href="#" class="arrow iconfont icon-left"></a>
+		<a href="#" class="arrow iconfont icon-right"></a>
+		<ul class="bullet">
+			<li class="active"></li>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+	</div>
+	
+	<div class="carousel">
+		<ul class="img-ct clearfix">
+			<li><a href="#"><img src="https://desk-fd.zol-img.com.cn/t_s960x600c5/g5/M00/08/00/ChMkJ1exsLCIULDFAAedtOIaCSsAAUdOAE_UEYAB53M287.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://bpic.wotucdn.com/16/59/94/16599493-88af06afa739cb9e06d3204d4b336f66.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://pic9.photophoto.cn/20081224/0034034894481234_b.jpg" alt=""></a></li>
+			<li><a href="#"><img src="http://www.bbra.cn/Uploadfiles/imgs/2014/03/26/feng2/Xbzs_011.jpg" alt=""></a></li>
+		</ul>
+		<a href="#" class="arrow iconfont icon-left"></a>
+		<a href="#" class="arrow iconfont icon-right"></a>
+		<ul class="bullet">
+			<li class="active"></li>
+			<li></li>
+			<li></li>
+			<li></li>
+		</ul>
+	</div>
+	<script>
+		// 使用构造函数创建不同的对象
+		function Carousel($ct){
+			this.init($ct);
+			this.bind();
+		}
+
+		Carousel.prototype = {
+			init: function($ct){
+				this.$ct = $ct
+				this.$imgCt = this.$ct.find('.img-ct')
+				this.$imgs = this.$ct.find('.img-ct>li')
+				this.$prevBtn = this.$ct.find('.icon-left')
+				this.$nextBtn = this.$ct.find('.icon-right')
+				this.$bullets = this.$ct.find('.bullet>li')
+				this.imgWidth = this.$imgs.width()
+				//console.log(this.imgWidth)
+				this.imgCount = this.$imgs.length
+				this.index = 0
+				this.isAnimate = false
+
+				this.$imgCt.append(this.$imgs.first().clone())
+				this.$imgCt.prepend(this.$imgs.last().clone())
+
+				this.$imgCt.width((this.imgWidth+2)* this.imgWidth)
+				this.$imgCt.css('left',-this.imgWidth)
+			},
+			bind: function(){
+				var _this = this
+				this.$prevBtn.on('click',function(){
+				//	console.log('prev...')
+					_this.playPrev(1)
+				})
+
+				this.$nextBtn.on('click',function(){
+				//	console.log('next...')
+					_this.playNext(1)
+				})
+
+				this.$bullets.on('click',function(){
+					var index = $(this).index()
+					if(_this.index != index){
+						if(_this.index >index){
+							_this.playPrev(_this.index-index)
+						}else{
+							_this.playNext(index-_this.index)
+						}
+					}
+					
+				})
+			},
+			playNext: function(len){
+				var _this = this
+				if(this.isAnimate) return
+				this.isAnimate = true
+				this.$imgCt.animate({
+					left: '-='+this.imgWidth *len+'px'
+				},300,function(){
+					_this.index +=len
+					console.log('next: '+_this.index)
+					if(_this.index === _this.imgCount){
+						_this.$imgCt.css('left',-_this.imgWidth)
+						_this.index = 0
+					}
+					_this.setBullet()
+					_this.isAnimate = false
+				})
+				
+			},
+			playPrev: function(len){
+				var _this = this
+				if(this.isAnimate) return
+				this.isAnimate = true
+				this.$imgCt.animate({
+					left: '+='+this.imgWidth *len+'px'
+				},300,function(){
+					_this.index -=len
+					console.log('prev: '+_this.index)
+					if(_this.index === -1){
+						_this.$imgCt.css('left',-_this.imgWidth*_this.imgCount)
+						_this.index = _this.imgCount-1
+					}
+					_this.setBullet()
+					_this.isAnimate = false
+				})
+				
+			},
+			setBullet: function(){
+				//console.log(this.index)
+				this.$bullets.eq(this.index).addClass('active').siblings().removeClass('active')
+			},
+			autoPlay: function(){
+				var _this = this
+				this.clock = setInterval(function(){
+					_this.playNext(1)
+				},2000)
+			},
+			stopAutoPlay: function(){
+				clearInterval(this.clock)
+			}
+		}
+
+		var carouselA = new Carousel($('.carousel').eq(0))
+		var carouselB = new Carousel($('.carousel').eq(1))
+	</script>
+</body>
+</html>
+
+
+
+
+
+
